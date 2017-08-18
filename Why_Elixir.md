@@ -6,6 +6,11 @@
 Elixir is 6 years.. Erlang has 20+ years.
 
 #### Using Erlang with Elixir
+Accessing erlang in Elixir
+
+`:erlang.`
+
+
 [Erlang Libraries](https://elixir-lang.org/getting-started/erlang-libraries.html)
 
 `:math`, `:binary`, etc..
@@ -20,15 +25,24 @@ iex> :math.log(7.694785265142018e23)
 55.0
 ```
 
+-- For Erlang Questions @ Brian
+
 ### Mix Tool
 Mix is a build tool that provides tasks for creating, compiling, and testing Elixir projects, managing its dependencies, and more.
+
 [Mix Hex Docs](https://hexdocs.pm/mix/Mix.html)
+
+`mix new` - creates a new elixir project
 
 `mix compile` - compiles the current project
 
 `mix test` - runs tests for the given project
 
 `mix run` - runs a particular command inside the project
+
+`mix deps` - List dependencies and status
+
+`mix deps.get` - get out of date dependencies
 
 ### Functional programming
 Elixir is Not Object Oriented, It's Process Oriented
@@ -42,8 +56,30 @@ Elixir is Not Object Oriented, It's Process Oriented
 A Note About Immutable Variables
 Elixir is a functional language which means that variables can’t change value. You can, however, reuse variable names. If you set x = 2 and then set x = 3, Elixir doesn’t mind.
 
+### Documentation
+[Writing Documentation](https://hexdocs.pm/elixir/writing-documentation.html#content)
+
+Hex Docs can be created from internal documentation. Examples within the Documentation can also be included within Mix Tests. Writing doc tests reminds the developer to write smaller more precise in/out functions.
+Having these examples tested also gives a good starting point when something has been changed and needs updating.
+
 ##### Modules
 Modules provide a way to encapsulate functionality... as many modules as needed even in the same file ... functions macros records etc.
+
+```elixir
+defmodule MyModule.Some.Helper do
+  @doc "Hello world"
+  def hello do
+    IO.puts "Hello, World!"
+  end
+end
+
+iex> MyModule.Some.Helper.hello
+"Hello, World!"
+
+iex> alias MyModule.Some.Helper
+iex> Helper.hello
+"Hello, World!"
+```
 
 #### Protocals and Piping
 > Protocols are the Elixir way of providing something roughly similar to OO interfaces. Protocols allow developers to create a generic logic that can be used with any type of data, assuming that some contract is implemented for the given data.
