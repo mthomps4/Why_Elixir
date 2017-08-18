@@ -25,6 +25,13 @@ iex> :math.log(7.694785265142018e23)
 55.0
 ```
 
+Note: While you can’t escape using the Erlang standard library from time to time, Elixir’s standard library is trying to normalize zero-based access and noun-first argument ordering, along with a more consistent API.
+
+```elixir
+elem({:a, :b, :c}, 0) #=> :a
+List.member?([:a, :b, :c], :b) #=> true
+```
+
 -- For Erlang Questions @ Brian
 
 ### Mix Tool
@@ -85,7 +92,7 @@ iex> Helper.hello
 > Protocols are the Elixir way of providing something roughly similar to OO interfaces. Protocols allow developers to create a generic logic that can be used with any type of data, assuming that some contract is implemented for the given data.
 
 ```elixir
-iex> Enum.map([1, 2, 3], fn x -> x * 2 end)
+iex> Enum.map([1, 2, 3], fn(x) -> x * 2 end)
 [2, 4, 6]
 ```
 
@@ -99,7 +106,10 @@ iex> Enum.map([1, 2, 3], fn x -> x * 2 end)
 ```
 
 #### Pattern Matching and Error Handling
+Does Left equal Right ?
+
 ```elixir
+# Tuples
 iex> {a, b, _} = {:hello, “world”, 42}
 {:hello, “world”, 42}
 ```
@@ -107,26 +117,27 @@ iex> {a, b, _} = {:hello, “world”, 42}
 ```elixir
 iex> {:hello, b, c} = {:hello, “world”, 42}
 {:hello, “world”, 42}
+
 iex> b
 “world”
+
 iex> c
 42
 ```
 
+This Doesn't Match
 ```elixir
-iex> {result, value} = {:ok, 2}
-{:ok, 2}
-iex> result
-:ok
-iex> value
-2
+iex> {:hello, b, c} = {:ok, “world”, 42}
+** (MatchError) no match of right hand side value: {:ok, "world", 42}
 ```
 
 ```elixir
 # Lists
 iex> list = [1, 2, 3]
+
 iex> [1, 2, 3] = list
 [1, 2, 3]
+
 iex> [] = list
 ** (MatchError) no match of right hand side value: [1, 2, 3]
 ```
@@ -137,7 +148,7 @@ How this helps!
 case MyApp.cool_function(param) do
  {:ok, result} -> result
  {:error, message} -> raise "Error in cool_function with param: #{param} -- Error: #{message}"
- true -> "Catch all Error"
+ true -> raise "Something Dumb Happened in MyApp.cool_function"
 end
 ```
 
@@ -145,7 +156,7 @@ end
 case MyApp.cool_function(param) do
  {:ok, result} ->
   result
-  |> do_stuff()
+  |> MyApp.do_other_stuff()
 
  {:error, message} -> raise "Error in cool_function with param: #{param} -- Error: #{message}"
 
@@ -179,23 +190,34 @@ iex> “Hi Matt. Nice to meet you. I hear you work for Eltoro.”
 ##### Guards
 
 ```elixir
-def my_function(number) when is_even(number) do
-  # do stuff
+
+@doc """
+number_function takes an integer and executes differently based off if the integer is even or odd.
+
+  ## Examples
+
+    iex> MyApp.number_function(2)
+    4
+
+    iex> MyApp.number_function(1)
+    2
+
+"""
+def number_function(number) when is_integer(number) && is_even(number) do
+  number * 2
 end
 
-def my_function(number) do
-  # do stuff
+def number_function(number) when is_integer(number) do
+  number + 1
 end
 ```
 
 ```elixir
 def my_function(param) when is_bitstring(param) do
   map = case Poison.decode(param) do
-    {:ok, result} -> result
+    {:ok, result} -> my_function(map)
     {:error, message} -> raise "Error: #{message}"
   end
-
-  my_function(map)
 end
 
 def my_function(param) when is_map(param) do
@@ -208,7 +230,7 @@ end
 
 > Elixir strings are UTF8 binaries, with all the raw speed and memory savings that brings. Elixir has a String module with Unicode functionality built-in.
 
-It’s still compiling to EVM bytecode at the end of the day.
+Elixir is still compiling to EVM bytecode at the end of the day.
 
 ```elixir
 iex> string = "hełło"
@@ -259,19 +281,12 @@ So while double-quotes represent a string (i.e. a binary), single-quotes represe
 
 > In practice, char lists are used mostly when interfacing with Erlang, in particular old libraries that do not accept binaries as arguments. You can convert a char list to a string and back by using the `to_string/1` and `to_charlist/1` functions:
 
-Note that those functions are polymorphic. They not only convert char lists to strings, but also integers to strings, atoms to strings, and so on.
+>Note that those functions are polymorphic. They not only convert char lists to strings, but also integers to strings, atoms to strings, and so on.
 
 ---
 
-While you can’t escape using the Erlang standard library from time to time, Elixir’s standard library is trying to normalize zero-based access and noun-first argument ordering, along with a more consistent API.
-
-```elixir
-elem({:a, :b, :c}, 0) #=> :a
-List.member?([:a, :b, :c], :b) #=> true
-```
-
 ### Test Driven
-Doc Tests
+##### Doc Tests
 ```elixir
 @doc """
 add_function takes an integer and adds 1
@@ -287,7 +302,8 @@ def add_function(a) when is_integer(a) do
 end
 ```
 
-Real Test - `ExUnit`
+##### Unit Testing
+[ExUnit](https://hexdocs.pm/ex_unit/ExUnit.DocTest.html)
 
 ```elixir
 defmodule Onspotgateway.HelperTest do
@@ -328,9 +344,12 @@ end
 ### Macros and Metaprogramming
 
 #### See Chris -- aka Doc
-#### REPO Example
+#### Repo File Example
 [portal backend experiments: Eltoroporta.API.Resolver](https://github.com/eltorocorp/portal-backend-experiments/blob/dev/lib/eltoroportal/api/Resolver.ex)
 
+[Macro Hex Docs](https://hexdocs.pm/elixir/Macro.html)
+
+[Elixir-lang.org Getting Started with Macros](https://elixir-lang.org/getting-started/meta/macros.html)
 - Macros are a powerful construct and Elixir provides many mechanisms to ensure they are used responsibly.
 
 - Macros are hygienic: by default, variables defined inside a macro are not going to affect the user code. Furthermore, function calls and aliases available in the macro context are not going to leak into the user context.
@@ -369,8 +388,8 @@ end
 
 > Phoenix is a modern web framework that makes building APIs and web applications easy. Since it’s built with Elixir and runs on that awesome Erlang VM, it’s fast as hell and has excellent support for handling very large numbers of simultaneous users.
 
-- [Phoenix HTML]() - conveniences for working with HTML in Phoenix
-- [Plug]() - a specification and conveniences for composable modules in between web applications
+- Phoenix HTML - conveniences for working with HTML in Phoenix
+- Plug - a specification and conveniences for composable modules in between web applications
 
 
 #### Ecto
@@ -420,11 +439,12 @@ constraints: [], errors: [], filters: %{} ...}
 ```
 
 ### Resources
--- Hex Docs --
--- Elixir-lang.org --
+-- @ Stuff Hex Docs Linked within --
+
+[Elixir-lang.org](https://elixir-lang.org/)
+
+[Erlang Libraries](https://elixir-lang.org/getting-started/erlang-libraries.html)
 
 [The Excitment of Elixir](http://devintorr.es/blog/2013/01/22/the-excitement-of-elixir/)
 
 [Elixir: It's Not About Syntax](http://devintorr.es/blog/2013/06/11/elixir-its-not-about-syntax/)
-
-[Erlang Libraries](https://elixir-lang.org/getting-started/erlang-libraries.html)
